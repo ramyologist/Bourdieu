@@ -30,7 +30,7 @@ def laden_und_berechnen_der_daten(uploaded_file):
         'Lesen außerhalb', 'Kunstunterricht', 'Finanzielle Situation',
         'Wohnsituation', 'Studienfinanzierung', 'Urlaube', 'Ersparnisse'
     ]
-
+    
     # Hier müsste die Codierung angepasst werden
     codierung = {
         # Fügen Sie hier die Codierung für jede Antwortmöglichkeit ein
@@ -39,12 +39,13 @@ def laden_und_berechnen_der_daten(uploaded_file):
     for column in umfrage_daten.columns[4:]:
         umfrage_daten[column] = umfrage_daten[column].apply(lambda x: codierung.get(x, x))
 
-    umfrage_daten['Kulturelles Kapital'] = umfrage_daten[
-        ['Bücher', 'Kulturelle Veranstaltungen', 'Bildungsniveau Eltern', 'Lesen außerhalb', 'Kunstunterricht']].mean(
-        axis=1)
-    umfrage_daten['Ökonomisches Kapital'] = umfrage_daten[
-        ['Finanzielle Situation', 'Wohnsituation', 'Studienfinanzierung', 'Urlaube', 'Ersparnisse']].mean(axis=1)
+    # Stellen Sie sicher, dass alle Werte numerisch sind
+    for col in ['Bücher', 'Kulturelle Veranstaltungen', 'Bildungsniveau Eltern', 'Lesen außerhalb', 'Kunstunterricht', 'Finanzielle Situation', 'Wohnsituation', 'Studienfinanzierung', 'Urlaube', 'Ersparnisse']:
+        umfrage_daten[col] = pd.to_numeric(umfrage_daten[col], errors='coerce')
 
+    umfrage_daten['Kulturelles Kapital'] = umfrage_daten[['Bücher', 'Kulturelle Veranstaltungen', 'Bildungsniveau Eltern', 'Lesen außerhalb', 'Kunstunterricht']].mean(axis=1, skipna=True)
+    umfrage_daten['Ökonomisches Kapital'] = umfrage_daten[['Finanzielle Situation', 'Wohnsituation', 'Studienfinanzierung', 'Urlaube', 'Ersparnisse']].mean(axis=1, skipna=True)
+    
     return umfrage_daten
 
 
