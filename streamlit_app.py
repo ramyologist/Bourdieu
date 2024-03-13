@@ -3,51 +3,44 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def laden_und_berechnen_der_daten(uploaded_file):
-    umfrage_ergebnisse = pd.read_excel(uploaded_file)
-    umfrage_daten = umfrage_ergebnisse.iloc[2:, 3:].reset_index(drop=True) # Beginn der Daten ab der dritten Zeile und vierten Spalte annehmen
-    umfrage_daten.columns = [
-        'Bücher', 'Kulturelle Veranstaltungen', 'Bildungsniveau Eltern',
-        'Lesen außerhalb', 'Kunstunterricht', 'Finanzielle Situation',
-        'Wohnsituation', 'Studienfinanzierung', 'Urlaube', 'Ersparnisse'
-    ]
+    # Lese die Excel-Datei
+    df = pd.read_excel(uploaded_file)
     
-    # Konvertierung der Antworten in numerische Werte
-    for col in umfrage_daten.columns:
-        umfrage_daten[col] = pd.to_numeric(umfrage_daten[col], errors='coerce')
+    # Entfernen der nicht relevanten Zeilen und Spalten
+    df = df.drop(index=[0, 1])
     
-    umfrage_daten['Kulturelles Kapital'] = umfrage_daten[['Bücher', 'Kulturelle Veranstaltungen', 'Bildungsniveau Eltern', 'Lesen außerhalb', 'Kunstunterricht']].mean(axis=1, skipna=True)
-    umfrage_daten['Ökonomisches Kapital'] = umfrage_daten[['Finanzielle Situation', 'Wohnsituation', 'Studienfinanzierung', 'Urlaube', 'Ersparnisse']].mean(axis=1, skipna=True)
-    
-    umfrage_daten['X-Wert'] = umfrage_daten['Ökonomisches Kapital'] - umfrage_daten['Kulturelles Kapital']
-    umfrage_daten['Y-Wert'] = umfrage_daten['Kulturelles Kapital'] + umfrage_daten['Ökonomisches Kapital']
+    # Ersetze NaN durch 0 oder eine geeignete Zahl
+    df = df.fillna(0)
 
-    return umfrage_daten
+    # Konvertiere alle relevanten Spalten in numerische Werte
+    cols_to_convert = df.columns[4:]  # oder eine genaue Liste der Spalten
+    df[cols_to_convert] = df[cols_to_convert].apply(pd.to_numeric, errors='coerce')
 
-def diagramm_erstellen(umfrage_daten):
-    fig, ax = plt.subplots()
-    ax.scatter(umfrage_daten['X-Wert'], umfrage_daten['Y-Wert'], c='blue', label='Teilnehmer')
-    ax.axhline(0, color='black', linewidth=0.8)
-    ax.axvline(0, color='black', linewidth=0.8)
+    # Berechne das kulturelle und ökonomische Kapital
+    df['Kulturelles Kapital'] = df.iloc[:, 4:9].mean(axis=1, skipna=True)
+    df['Ökonomisches Kapital'] = df.iloc[:, 9:].mean(axis=1, skipna=True)
 
-    # Anpassung der Achsen um 10% über den größten absoluten Wert hinaus
-    x_range = max(abs(umfrage_daten['X-Wert'].max()), abs(umfrage_daten['X-Wert'].min())) * 1.1
-    y_range = max(abs(umfrage_daten['Y-Wert'].max()), abs(umfrage_daten['Y-Wert'].min())) * 1.1
+    # Berechne X-Wert und Y-Wert
+    df['X-Wert'] = df['Kulturelles Kapital'] - df['Ökonomisches Kapital']
+    df['Y-Wert'] = df['Kulturelles Kapital'] + df['Ökonomisches Kapital']
+    return df
 
-    ax.set_xlim(-x_range if x_range != 0 else -1, x_range if x_range != 0 else 1)
-    ax.set_ylim(-y_range if y_range != 0 else -1, y_range if y_range != 0 else 1)
-
-    ax.set_title('Kreuzdiagramm des sozialen Raums')
-    ax.set_xlabel('Kulturelles vs. Ökonomisches Kapital')
-    ax.set_ylabel('Gesamtkapitalvolumen')
-    ax.grid(True)
-    ax.legend()
-
-    return fig
+def diagramm_erstellen(df):
+    plt.figure(figsize=(10, 6))
+    plt.scatter(df['X-Wert'], df['Y-Wert'], c='blue', label='Teilnehmer')
+    plt.axhline(0, color='black', linewidth=0.8)
+    plt.axvline(0, color='black', linewidth=0.8)
+    plt.title('Kreuzdiagramm des sozialen Raums')
+    plt.xlabel('Kulturelles vs. Ökonomisches Kapital')
+    plt.ylabel('Gesamtkapitalvolumen')
+    plt.grid(True)
+    plt.legend()
+    return plt
 
 st.title('Sozialer Raum Diagramm-Generator')
 
 uploaded_file = st.file_uploader("Wählen Sie eine Excel-Datei aus", type="xlsx")
 if uploaded_file is not None:
-    umfrage_daten = laden_und_berechnen_der_daten(uploaded_file)
-    fig = diagramm_erstellen(umfrage_daten)
-    st.pyplot(fig)
+    df = laden_und_berechnen_der_daten(uploaded_file)
+    plt = diagramm_erstellen(df)
+    st.pyplot(plt)
