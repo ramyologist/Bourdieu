@@ -1,25 +1,20 @@
+
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Angenommen, die ersten fünf Fragen (nach Datum, Session und Voter) sind für das kulturelle Kapital
-# und die nächsten fünf Fragen für das ökonomische Kapital.
-KULTURELLES_KAPITAL_START = 3  # Beginn bei der vierten Spalte
-KULTURELLES_KAPITAL_END = 8  # Fünf Fragen für kulturelles Kapital
-OEKONOMISCHES_KAPITAL_START = 8  # Beginn bei der neunten Spalte
-OEKONOMISCHES_KAPITAL_END = 13  # Fünf Fragen für ökonomisches Kapital
-
 def laden_und_berechnen_der_daten(uploaded_file):
-    df = pd.read_excel(uploaded_file, skiprows=2)
-    df.fillna(0, inplace=True)
+    df = pd.read_excel(uploaded_file, skiprows=2)  # Überspringe die ersten beiden Zeilen
+    df.fillna(0, inplace=True)  # Ersetze alle NaN mit 0
 
     # Konvertiere Spalten in numerische Werte, falls notwendig
-    for col in df.columns[KULTURELLES_KAPITAL_START:OEKONOMISCHES_KAPITAL_END]:
+    for col in df.columns[3:]:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
     # Berechnung der Werte für das Diagramm
-    df['Kulturelles Kapital'] = df.iloc[:, KULTURELLES_KAPITAL_START:KULTURELLES_KAPITAL_END].mean(axis=1)
-    df['Ökonomisches Kapital'] = df.iloc[:, OEKONOMISCHES_KAPITAL_START:OEKONOMISCHES_KAPITAL_END].mean(axis=1)
+    df['Kulturelles Kapital'] = df.iloc[:, 3:8].mean(axis=1)
+    df['Ökonomisches Kapital'] = df.iloc[:, 8:13].mean(axis=1)
     df['X-Wert'] = df['Ökonomisches Kapital'] - df['Kulturelles Kapital']
     df['Y-Wert'] = df['Kulturelles Kapital'] + df['Ökonomisches Kapital']
 
@@ -49,5 +44,9 @@ st.title('Sozialer Raum Diagramm-Generator')
 uploaded_file = st.file_uploader("Wählen Sie eine Excel-Datei aus", type="xlsx")
 if uploaded_file is not None:
     df = laden_und_berechnen_der_daten(uploaded_file)
-    fig = diagramm_erstellen(df)
-    st.pyplot(fig)
+    # Überprüfen ob die Datenpunkte innerhalb gültiger Bereichsgrenzen liegen
+    if df['X-Wert'].isnull().any() or df['Y-Wert'].isnull().any():
+        st.error('Einer der berechneten Werte ist NaN. Bitte überprüfen Sie die Daten.')
+    else:
+        fig = diagramm_erstellen(df)
+        st.pyplot(fig)
