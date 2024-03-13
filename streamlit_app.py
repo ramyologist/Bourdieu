@@ -4,15 +4,22 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 
 
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+from io import BytesIO
+
 def diagramm_erstellen(umfrage_daten):
-    # Berechnung der neuen X- und Y-Werte für die neuen Daten
-    umfrage_daten['X-Wert'] = umfrage_daten['Kulturelles Kapital'] - umfrage_daten['Ökonomisches Kapital']
-    umfrage_daten['Y-Wert'] = umfrage_daten['Kulturelles Kapital'] + umfrage_daten['Ökonomisches Kapital']
+    # Erweiterung der Achsen für eine bessere Sichtbarkeit
+    x_range = max(abs(umfrage_daten['X-Wert'].max()), abs(umfrage_daten['X-Wert'].min())) * 1.1
+    y_range = max(abs(umfrage_daten['Y-Wert'].max()), abs(umfrage_daten['Y-Wert'].min())) * 1.1
 
     plt.figure(figsize=(10, 6))
     plt.scatter(umfrage_daten['X-Wert'], umfrage_daten['Y-Wert'], c='blue', label='Teilnehmer')
     plt.axhline(0, color='black', linewidth=0.8)
     plt.axvline(0, color='black', linewidth=0.8)
+    plt.xlim(-x_range, x_range)
+    plt.ylim(-y_range, y_range)
     plt.title('Kreuzdiagramm des sozialen Raums')
     plt.xlabel('Kulturelles vs. Ökonomisches Kapital')
     plt.ylabel('Gesamtkapitalvolumen')
