@@ -24,18 +24,24 @@ def laden_und_berechnen_der_daten(uploaded_file):
     df['X-Wert'] = df['Kulturelles Kapital'] - df['Ökonomisches Kapital']
     df['Y-Wert'] = df['Kulturelles Kapital'] + df['Ökonomisches Kapital']
     return df
+def diagramm_erstellen(umfrage_daten):
+    # Erweiterung der Achsen für eine bessere Sichtbarkeit
+    x_range = max(abs(umfrage_daten['X-Wert'].max()), abs(umfrage_daten['X-Wert'].min())) * 1.1
+    y_range = max(abs(umfrage_daten['Y-Wert'].max()), abs(umfrage_daten['Y-Wert'].min())) * 1.1
 
-def diagramm_erstellen(df):
     plt.figure(figsize=(10, 6))
-    plt.scatter(df['X-Wert'], df['Y-Wert'], c='blue', label='Teilnehmer')
+    plt.scatter(umfrage_daten['X-Wert'], umfrage_daten['Y-Wert'], c='blue', label='Teilnehmer')
     plt.axhline(0, color='black', linewidth=0.8)
     plt.axvline(0, color='black', linewidth=0.8)
+    plt.xlim(-x_range, x_range)
+    plt.ylim(-y_range, y_range)
     plt.title('Kreuzdiagramm des sozialen Raums')
     plt.xlabel('Kulturelles vs. Ökonomisches Kapital')
     plt.ylabel('Gesamtkapitalvolumen')
     plt.grid(True)
     plt.legend()
-    return plt
+    st.pyplot()
+
 
 st.title('Sozialer Raum Diagramm-Generator')
 
